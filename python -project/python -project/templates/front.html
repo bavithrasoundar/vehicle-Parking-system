@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Parking Reservation System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group select, .form-group button {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .form-group button {
+            background-color: #007BFF;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .form-group button:hover {
+            background-color: #0056b3;
+        }
+        .output {
+            margin-top: 20px;
+        }
+        .card {
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+            border-left: 5px solid #007BFF;
+        }
+        .card h3 {
+            margin: 0;
+            font-size: 1.5em;
+            color: #007BFF;
+        }
+        .card p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Vehicle Parking Reservation System</h1>
+    <div class="form-group">
+        <label for="type">Vehicle Type</label>
+        <select id="type">
+            <option value="1">Car</option>
+            <option value="2">Bike</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="pltno">Vehicle Number</label>
+        <input type="text" id="pltno">
+    </div>
+    <div class="form-group">
+        <label for="arrive">Arrival Time (hh:mm:ss)</label>
+        <input type="text" id="arrive">
+    </div>
+    <div class="form-group">
+        <label for="date">Date (dd/mm/yyyy)</label>
+        <input type="text" id="date">
+    </div>
+    <div class="form-group">
+        <button onclick="addVehicle()">Add Vehicle</button>
+    </div>
+    <div class="form-group">
+        <button onclick="showVehicles()">Show Vehicles</button>
+    </div>
+    <div class="form-group">
+        <button onclick="totalVehicles()">Total Vehicles</button>
+    </div>
+    <div class="form-group">
+        <label for="depart">Departure Time (hh:mm:ss)</label>
+        <input type="text" id="depart">
+    </div>
+    <div class="form-group">
+        <button onclick="deleteVehicle()">Departure of Vehicle</button>
+    </div>
+    <div class="output" id="output"></div>
+</div>
+
+<script>
+    function addVehicle() {
+        const type = document.getElementById('type').value;
+        const pltno = document.getElementById('pltno').value;
+        const arrive = document.getElementById('arrive').value;
+        const date = document.getElementById('date').value;
+
+        fetch('/addVehicle', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ type, pltno, arrive, date })
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('output').innerText = 'Vehicle added successfully';
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    function showVehicles() {
+        fetch('/showVehicles')
+        .then(response => response.json())
+        .then(data => {
+            let output = '<h2>Vehicles</h2>';
+            data.forEach(vehicle => {
+                output += `
+                <div class="card">
+                    <h3>${vehicle.type}</h3>
+                    <p><strong>Number:</strong> ${vehicle.pltno}</p>
+                    <p><strong>Date:</strong> ${vehicle.date}</p>
+                    <p><strong>Arrival:</strong> ${vehicle.arrive}</p>
+                </div>`;
+            });
+            document.getElementById('output').innerHTML = output;
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    function totalVehicles() {
+        fetch('/totalVehicles')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('output').innerHTML = `
+                <div class="card">
+                    <h3>Total Vehicles</h3>
+                    <p>Total: ${data.total}</p>
+                    <p>Cars: ${data.cars}</p>
+                    <p>Bikes: ${data.bikes}</p>
+                </div>`;
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+   
+
+    function deleteVehicle() {
+        const type = document.getElementById('type').value;
+        const pltno = document.getElementById('pltno').value;
+        const depart = document.getElementById('depart').value;
+
+        fetch('/deleteVehicle', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ type, pltno, depart })
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('output').innerHTML = `
+                <div class="card">
+                    <h3>Departure</h3>
+                    <p>Vehicle with number ${pltno} has left the parking after paying Rs. ${data.charge}</p>
+                </div>`;
+        })
+        .catch(error => console.error('Error:', error));
+    }
+</script>
+
+</body>
+</html>
